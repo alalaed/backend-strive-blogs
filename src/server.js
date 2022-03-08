@@ -5,8 +5,10 @@ import blogsRouter from "./services/blogs/index.js";
 
 const server = express();
 
-const port = 4000;
+const port = 3001;
+
 server.use(express.json());
+
 server.use("/authors", authorsRouter);
 server.use("/blogs", blogsRouter);
 

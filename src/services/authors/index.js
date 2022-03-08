@@ -1,14 +1,27 @@
 import express from "express";
-// import url
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { join, dirname } from "path";
 
 const authorsRouter = express.Router();
 
-// const authorsJSONPath = import.meta.url;
+const authorsJSONPath = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "/authors.json"
+);
 
-authorsRouter.post("/", () => {});
-authorsRouter.get("/", () => {});
-authorsRouter.get("/:authorId", () => {});
-authorsRouter.put("/:authorId", () => {});
-authorsRouter.delete("/:authorId", () => {});
+const getAuthors = () => fs.readFileSync(authorsJSONPath);
+
+const writeAuthors = (content) =>
+  fs.writeFileSync(authorsJSONPath, JSON.stringify(content));
+
+authorsRouter.post("/", (req, res, next) => {});
+authorsRouter.get("/", (req, res, next) => {
+  const authors = getAuthors();
+  res.send(authors);
+});
+authorsRouter.get("/:authorId", (req, res, next) => {});
+authorsRouter.put("/:authorId", (req, res, next) => {});
+authorsRouter.delete("/:authorId", (req, res, next) => {});
 
 export default authorsRouter;
