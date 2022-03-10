@@ -38,7 +38,7 @@ filesRouter.post(
 
 filesRouter.get("/downloadCSV", (req, res, next) => {
   try {
-    res.setHeader("Content-Disposition", "attachment; filename=authors.csv");
+    res.setHeader("Content-Disposition", "attachment; filename=example.pdf");
 
     const source = getAuthorsReadableStream();
     const transform = new json2csv.Transform({ fields: ["name", "surname"] });
