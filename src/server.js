@@ -18,17 +18,22 @@ const port = process.env.PORT;
 
 const publicFolderPath = join(process.cwd(), "./public");
 
-const whitelist = [process.env.FE_DEV_URl, process.env.FE_PROD_URL];
+const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
+
+server.use(express.static(publicFolderPath));
 
 server.use(
   cors({
     origin: function (origin, next) {
-      if (origin || whitelist.indexOf(origin) !== -1) {
-        console.log("origin allowed");
-        next(null, true);
+      // cors is a global middleware --> for each and every request we are going to be able to read the current origin value
+      console.log("ORIGIN: ", origin);
+      if (!origin || whitelist.indexOf(origin) !== -1) {
+        // indexOf returns -1 when the element is NOT in the array
+        console.log("Origin allowed!");
+        next(null, true); // origin is in the whitelist --> move next with no errors
       } else {
-        console.log("origin is allowed");
-        next(new Error("CORS Error"));
+        console.log("Origin NOT allowed!");
+        next(new Error("CORS ERROR!")); // origin is NOT in the whitelist --> trigger an error
       }
     },
   })
