@@ -1,45 +1,54 @@
 import express from "express";
-import fs from "fs";
-import { fileURLToPath } from "url";
-import { join, dirname } from "path";
+// import fs from "fs-extra";
+// import { fileURLToPath } from "url";
+// import { join, dirname } from "path";
 import uniqid from "uniqid";
+import { validationResult } from "express-validator";
+import { validator } from "./validation.js";
+import createHttpError from "http-errors";
+import { getBlogs, writeBlogs } from "../../lib/fs-tools.js";
 
 const blogsRouter = express.Router();
 
-const blogsJSONPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "/blogs.json"
-);
+// const blogsJSONPath = join(
+//   dirname(fileURLToPath(import.meta.url)),
+//   "/blogs.json"
+// );
 
-const getBlogs = () => JSON.parse(fs.readFileSync(blogsJSONPath));
+// const getBlogs = () => JSON.parse(fs.readFileSync(blogsJSONPath));
 
-const writeBlogs = (content) =>
-  fs.writeFileSync(blogsJSONPath, JSON.stringify(content));
+// const writeBlogs = (content) =>
+//   fs.writeFileSync(blogsJSONPath, JSON.stringify(content));
 
-blogsRouter.post("/", (req, res, next) => {
+blogsRouter.post("/", validator, async (req, res, next) => {
   try {
-    const blogs = getBlogs();
-    const newBlog = { ...req.body, createdAt: new Date(), id: uniqid() };
-    authors.push(newBlog);
-    writeBlogs(blogs);
-    res.status(201).send(newBlog);
+    const errorsList = validationResult(req);
+    if (errorsList.isEmpty()) {
+      const blogs = await getBlogs();
+      const newBlog = { ...req.body, createdAt: new Date(), id: uniqid() };
+      authors.push(newBlog);
+      await writeBlogs(blogs);
+      res.status(201).send(newBlog);
+    } else {
+      next(createHttpError(400, "some errors occured", { errorsList }));
+    }
   } catch (error) {
     next(error);
   }
 });
 
-blogsRouter.get("/", (req, res, next) => {
+blogsRouter.get("/", async (req, res, next) => {
   try {
-    const blogs = getBlogs();
+    const blogs = await getBlogs();
     res.send(blogs);
   } catch (error) {
     next(error);
   }
 });
 
-blogsRouter.get("/:blogId", (req, res, next) => {
+blogsRouter.get("/:blogId", async (req, res, next) => {
   try {
-    const blogs = getBlogs();
+    const blogs = await getBlogs();
     const foundBlog = blogs.filter((blog) => blog.id === req.params.blogId);
     res.status(200).send(foundBlog);
   } catch (error) {
@@ -47,27 +56,27 @@ blogsRouter.get("/:blogId", (req, res, next) => {
   }
 });
 
-blogsRouter.put("/:blogId", (req, res, next) => {
+blogsRouter.put("/:blogId", async (req, res, next) => {
   try {
-    const blogs = getBlogs();
+    const blogs = await getBlogs();
     const index = blogs.findIndex((blog) => blog.id === req.params.blogId);
     const oldBlog = blogs[index];
     const updatedBlog = { ...oldBlog, ...req.body, updatedAt: new Date() };
     blogs[index] = updatedBlog;
-    writeBlogs(blogs);
+    await writeBlogs(blogs);
     res.send(updatedBlog);
   } catch (error) {
     next(error);
   }
 });
 
-blogsRouter.delete("/:blog‚Id", (req, res, next) => {
+blogsRouter.delete("/:blog‚Id", async (req, res, next) => {
   try {
-    const blogs = getBlogs();
+    const blogs = await getBlogs();
     const remainingBlogs = blogs.filter(
       (blog) => blog.id !== req.params.blogId
     );
-    writeBlogs(remainingBlogs);
+    await writeBlogs(remainingBlogs);
     res.send(remainingBlogs);
   } catch (error) {
     next(error);
