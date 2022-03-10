@@ -1,6 +1,9 @@
 import express from "express";
+import { pipeline } from "stream";
 import multer from "multer";
 import { savedAvatars } from "../../lib/fs-tools.js";
+import { getAuthorsReadableStream } from "../../lib/fs-tools.js";
+import json2csv from "json2csv";
 
 const filesRouter = express.Router();
 
@@ -32,5 +35,21 @@ filesRouter.post(
     }
   }
 );
+
+filesRouter.get("/downloadCSV", (req, res, next) => {
+  try {
+    res.setHeader("Content-Disposition", "attachment; filename=authors.csv");
+
+    const source = getAuthorsReadableStream();
+    const transform = new json2csv.Transform({ fields: ["name", "surname"] });
+    const destination = res;
+
+    pipeline(source, transform, destination, (err) => {
+      console.log(err);
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default filesRouter;
