@@ -4,6 +4,7 @@ import multer from "multer";
 import { savedAvatars } from "../../lib/fs-tools.js";
 import { getAuthorsReadableStream } from "../../lib/fs-tools.js";
 import json2csv from "json2csv";
+import { sendEmail } from "../../lib/email-tools.js";
 
 const filesRouter = express.Router();
 
@@ -47,6 +48,17 @@ filesRouter.get("/downloadCSV", (req, res, next) => {
     pipeline(source, transform, destination, (err) => {
       console.log(err);
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+filesRouter.post("/register", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    await sendEmail(email);
+    res.send();
   } catch (error) {
     next(error);
   }
