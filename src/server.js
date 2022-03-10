@@ -18,7 +18,21 @@ const port = process.env.PORT;
 
 const publicFolderPath = join(process.cwd(), "./public");
 
-server.use(cors());
+const whitelist = [process.env.FE_DEV_URl, process.env.FE_PROD_URL];
+
+server.use(
+  cors({
+    origin: function (origin, next) {
+      if (origin || whitelist.indexOf(origin) !== -1) {
+        console.log("origin allowed");
+        next(null, true);
+      } else {
+        console.log("origin is allowed");
+        next(new Error("CORS Error"));
+      }
+    },
+  })
+);
 server.use(express.json());
 
 server.use("/authors", authorsRouter);
